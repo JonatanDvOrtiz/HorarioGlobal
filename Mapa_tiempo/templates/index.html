@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reloj Mundial con Mapa</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; }
+        #map { height: 100vh; width: 100%; }
+        .leaflet-popup-content { font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([20, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        const cities = {
+            "Nueva York": {lat: 40.7128, lon: -74.0060},
+            "Londres": {lat: 51.5074, lon: -0.1278},
+            "Tokio": {lat: 35.6895, lon: 139.6917},
+            "Sídney": {lat: -33.8688, lon: 151.2093},
+            "Buenos Aires": {lat: -34.6037, lon: -58.3816},
+            "Madrid": {lat: 40.4168, lon: -3.7038},
+            "París": {lat: 48.8566, lon: 2.3522},
+            "Los Ángeles": {lat: 34.0522, lon: -118.2437},
+            "Ciudad de México": {lat: 19.4326, lon: -99.1332},
+            "Johannesburgo": {lat: -26.2041, lon: 28.0473},
+            "Dubai": {lat: 25.276987, lon: 55.296249},
+            "Pekín": {lat: 39.9042, lon: 116.4074},
+            "Moscú": {lat: 55.7558, lon: 37.6173}
+        };
+
+        for (const [city, coords] of Object.entries(cities)) {
+            const marker = L.marker([coords.lat, coords.lon]).addTo(map);
+            marker.bindPopup("Cargando hora...");
+
+            marker.on("click", () => {
+                fetch("/api/time", {
+                    method: "POST",
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ cities: [city] })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    const time = data[city];
+                    marker.getPopup().setContent(`<strong>${city}</strong><br>${time}`).openOn(map);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
